@@ -15,7 +15,7 @@ SRCS = $(SRC_DIR)/main.c \
 OBJS = $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
 # Nome do executável final
-TARGET = ftp_client
+TARGET = download
 
 # ============================================================
 
