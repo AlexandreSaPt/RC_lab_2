@@ -100,7 +100,8 @@ int main(int argc, char *argv[]) {
 /*
 make
 
-./ftp_client ftp://anonymous:guest@ftp.netlab.fe.up.pt/pub/readme.txt
+./download ftp://ftp.netlab.fe.up.pt/ftp/teste.txt
+./download ftp://ftp.netlab.fe.up.pt/ftp/ubuntu-24.04.2-desktop-amd64.iso
 ```
 
 +-------------------+                 +---------------------+

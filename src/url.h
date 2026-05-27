@@ -1,8 +1,8 @@
 #ifndef URL_H
 #define URL_H
 
-#define DEFAULT_USER "anonymous"
-#define DEFAULT_PASS "anonymous@"
+#define DEFAULT_USER "rcom"
+#define DEFAULT_PASS "rcom"
 
 typedef struct
 {
