@@ -1,0 +1,13 @@
+/interface bridge add name=bridge10
+/interface bridge add name=bridge11
+/interface bridge port remove [find interface=ether1]
+/interface bridge port remove [find interface=ether2]
+/interface bridge port remove [find interface=ether3]
+/interface bridge port remove [find interface=ether4]
+/interface bridge port add bridge=bridge10 interface=ether1
+/interface bridge port add bridge=bridge10 interface=ether2
+/interface bridge port add bridge=bridge11 interface=ether3
+/interface bridge port add bridge=bridge11 interface=ether4
+# RC router port - add to bridge11
+/interface bridge port remove [find interface=ether8]
+/interface bridge port add bridge=bridge11 interface=ether8
