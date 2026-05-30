@@ -4,20 +4,20 @@
 #include <netinet/in.h>
 
 /**
- * Resolve um hostname para um endereço IPv4 (sockaddr_in).
+ * Resolves a hostname to an IPv4 address (sockaddr_in).
  * 
  * @param hostname  ex: "ftp.netlab.fe.up.pt"
- * @param addr      struct sockaddr_in de saída
- * @param port      porta TCP em host order (ex: 21)
- * @return 0 em sucesso, -1 em erro
+ * @param addr      output struct sockaddr_in
+ * @param port      TCP port in host order (ex: 21)
+ * @return 0 on success, -1 on error
  */
 int resolve_host(const char *hostname, struct sockaddr_in *addr, int port);
 
 /**
- * Abre uma ligação TCP a partir de uma struct sockaddr_in já preenchida.
+ * Opens a TCP connection from an already filled struct sockaddr_in.
  *
- * @param addr  endereço e porta do servidor
- * @return descritor de socket (>0) em sucesso, -1 em erro
+ * @param addr  server address and port
+ * @return socket descriptor (>0) on success, -1 on error
  */
 int tcp_connect(struct sockaddr_in *addr);
 
