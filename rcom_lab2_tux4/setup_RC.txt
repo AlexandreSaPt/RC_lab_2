@@ -1,0 +1,6 @@
+# RC Router configuration
+/ip address add address=172.16.11.254/24 interface=ether2
+/ip address add address=10.227.20.19/24 interface=ether1
+/ip route add dst-address=0.0.0.0/0 gateway=10.227.20.254
+/ip route add dst-address=172.16.10.0/24 gateway=172.16.11.253
+/ip firewall nat add chain=srcnat action=masquerade out-interface=ether1
