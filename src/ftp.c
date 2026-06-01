@@ -41,7 +41,7 @@ int ftp_read_reply(int sockfd, char *response, size_t max, int *out_code)
     {
         if (ftp_read_line(sockfd, response, max) < 0)
         {
-            fprintf(stderr, "Erro a ler resposta FTP\n");
+            fprintf(stderr, "Error reading FTP response\n");
             return -1;
         }
 
@@ -68,7 +68,7 @@ int ftp_send_cmd(int sockfd, const char *cmd, char *response, size_t max)
     int len = snprintf(buffer, sizeof(buffer), "%s\r\n", cmd);
     if (len < 0 || (size_t)len >= sizeof(buffer))
     {
-        fprintf(stderr, "Comando FTP demasiado grande\n");
+        fprintf(stderr, "FTP command too large\n");
         return -1;
     }
 
@@ -105,20 +105,20 @@ int ftp_login(int ctrl_sock, const char *user, const char *password)
     int code;
     if (ftp_read_reply(ctrl_sock, response, sizeof(response), &code) < 0)
     {
-        fprintf(stderr, "Erro a ler banner inicial\n");
+        fprintf(stderr, "Error reading initial banner\n");
         return -1;
     }
     printf("<< %s", response);
 
     if (code != FTP_CODE_SERVICE_READY)
     {
-        fprintf(stderr, "Servidor não está pronto (esperava 220, recebi %d)\n", code);
+        fprintf(stderr, "Server is not ready (expected 220, received %d)\n", code);
         return -1;
     }
     snprintf(cmd, sizeof(cmd), "USER %s", user);
     if (ftp_send_cmd(ctrl_sock, cmd, response, sizeof(response)) < 0)
     {
-        fprintf(stderr, "Erro a enviar USER\n");
+        fprintf(stderr, "Error sending USER\n");
         return -1;
     }
     code = ftp_get_reply_code(response);
@@ -128,13 +128,13 @@ int ftp_login(int ctrl_sock, const char *user, const char *password)
     }
     if (code != FTP_CODE_USERNAME_OK)
     {
-        fprintf(stderr, "USER rejeitado (codigo %d)\n", code);
+        fprintf(stderr, "USER rejected (code %d)\n", code);
         return -1;
     }
     snprintf(cmd, sizeof(cmd), "PASS %s", password);
     if (ftp_send_cmd(ctrl_sock, cmd, response, sizeof(response)) < 0)
     {
-        fprintf(stderr, "Erro a enviar PASS\n");
+        fprintf(stderr, "Error sending PASS\n");
         return -1;
     }
     code = ftp_get_reply_code(response);
@@ -144,11 +144,11 @@ int ftp_login(int ctrl_sock, const char *user, const char *password)
     }
     if (code == FTP_CODE_LOGIN_FAIL)
     {
-        fprintf(stderr, "Login falhou (530)\n");
+        fprintf(stderr, "Login failed (530)\n");
     }
     else
     {
-        fprintf(stderr, "Código inesperado após PASS: %d\n", code);
+        fprintf(stderr, "Unexpected code after PASS: %d\n", code);
     }
     return -1;
 }
@@ -159,27 +159,27 @@ int ftp_enter_passive(int ctrl_sock, char *ip_str, size_t ip_max, int *port)
 
     if (ftp_send_cmd(ctrl_sock, "PASV", response, sizeof(response)) < 0)
     {
-        fprintf(stderr, "Erro a enviar PASV\n");
+        fprintf(stderr, "Error sending PASV\n");
         return -1;
     }
     int code = ftp_get_reply_code(response);
     if (code != FTP_CODE_ENTERING_PASSIVE)
     {
-        fprintf(stderr, "Resposta inesperada ao PASV: %d\n", code);
+        fprintf(stderr, "Unexpected response to PASV: %d\n", code);
         return -1;
     }
     const char *p = strchr(response, '(');
     const char *q = strchr(response, ')');
     if (!p || !q || q <= p + 1)
     {
-        fprintf(stderr, "Formato inválido na resposta PASV\n");
+        fprintf(stderr, "Invalid format in PASV response\n");
         return -1;
     }
     char inside[128];
     size_t len = q - p - 1;
     if (len >= sizeof(inside))
     {
-        fprintf(stderr, "Conteúdo PASV demasiado longo\n");
+        fprintf(stderr, "PASV content too long\n");
         return -1;
     }
 
@@ -189,14 +189,14 @@ int ftp_enter_passive(int ctrl_sock, char *ip_str, size_t ip_max, int *port)
     int h1, h2, h3, h4, p1, p2;
     if (sscanf(inside, "%d,%d,%d,%d,%d,%d", &h1, &h2, &h3, &h4, &p1, &p2) != 6)
     {
-        fprintf(stderr, "Falha ao fazer parse dos números do PASV\n");
+        fprintf(stderr, "Failed to parse PASV numbers\n");
         return -1;
     }
 
     int n = snprintf(ip_str, ip_max, "%d.%d.%d.%d", h1, h2, h3, h4);
     if (n < 0 || (size_t)n >= ip_max)
     {
-        fprintf(stderr, "Buffer ip_str demasiado pequeno\n");
+        fprintf(stderr, "Buffer ip_str too small\n");
         return -1;
     }
 
@@ -214,7 +214,7 @@ int ftp_retrieve(int ctrl_sock, int data_sock,
     snprintf(cmd, sizeof(cmd), "RETR %s", remote_path);
     if (ftp_send_cmd(ctrl_sock, cmd, response, sizeof(response)) < 0)
     {
-        fprintf(stderr, "Erro a enviar RETR\n");
+        fprintf(stderr, "Error sending RETR\n");
         return -1;
     }
 
@@ -224,11 +224,11 @@ int ftp_retrieve(int ctrl_sock, int data_sock,
     {
         if (code == FTP_CODE_FILE_UNAVAILABLE)
         {
-            fprintf(stderr, "Ficheiro remoto não disponível (550)\n");
+            fprintf(stderr, "Remote file unavailable (550)\n");
         }
         else
         {
-            fprintf(stderr, "Código inesperado após RETR: %d\n", code);
+            fprintf(stderr, "Unexpected code after RETR: %d\n", code);
         }
         return -1;
     }
@@ -256,7 +256,7 @@ int ftp_retrieve(int ctrl_sock, int data_sock,
 
     if (n < 0)
     {
-        perror("read() da ligação de dados");
+        perror("read() from data connection");
         fclose(f);
         close(data_sock);
         return -1;
@@ -267,12 +267,12 @@ int ftp_retrieve(int ctrl_sock, int data_sock,
 
     if (ftp_read_reply(ctrl_sock, response, sizeof(response), &code) < 0)
     {
-        fprintf(stderr, "Erro a ler resposta final após RETR\n");
+        fprintf(stderr, "Error reading final response after RETR\n");
         return -1;
     }
     if (code != FTP_CODE_TRANSFER_COMPLETE)
     {
-        fprintf(stderr, "Transferência não terminou com sucesso (codigo %d)\n", code);
+        fprintf(stderr, "Transfer did not complete successfully (code %d)\n", code);
         return -1;
     }
 
@@ -285,14 +285,14 @@ int ftp_quit(int ctrl_sock)
 
     if (ftp_send_cmd(ctrl_sock, "QUIT", response, sizeof(response)) < 0)
     {
-        fprintf(stderr, "Erro a enviar QUIT\n");
+        fprintf(stderr, "Error sending QUIT\n");
         return -1;
     }
 
     int code = ftp_get_reply_code(response);
     if (code != FTP_CODE_CLOSING_CTRL)
     {
-        fprintf(stderr, "Código inesperado após QUIT: %d\n", code);
+        fprintf(stderr, "Unexpected code after QUIT: %d\n", code);
         return -1;
     }
 

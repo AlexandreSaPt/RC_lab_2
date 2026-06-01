@@ -23,74 +23,74 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    // Parse do URL
+    // Parse URL
     if (parse_url(argv[1], &u) != 0) {
-        fprintf(stderr, "Erro de parsing da URL\n");
+        fprintf(stderr, "URL parsing error\n");
         return 1;
     }
 
-    // Resolver hostname
+    // Resolve hostname
     if (resolve_host(u.host, &addr_ctrl, 21) < 0) {
-        fprintf(stderr, "Erro em resolve_host\n");
+        fprintf(stderr, "Error in resolve_host\n");
         return 1;
     }
 
-    // Abrir ligação TCP de controle
+    // Open TCP control connection
     ctrl_sock = tcp_connect(&addr_ctrl);
     if (ctrl_sock < 0) {
-        fprintf(stderr, "Erro a conectar ao servidor FTP (controle)\n");
+        fprintf(stderr, "Error connecting to FTP server (control)\n");
         return 1;
     }
 
-    // 4. Login FTP
+    // 4. FTP Login
     if (ftp_login(ctrl_sock, u.user, u.password) < 0) {
-        fprintf(stderr, "Erro no login FTP\n");
+        fprintf(stderr, "Error in FTP login\n");
         close(ctrl_sock);
         return 1;
     }
 
-    // 5. Entrar em modo PASSIVE
+    // 5. Enter PASSIVE mode
     if (ftp_enter_passive(ctrl_sock, pasv_ip, sizeof(pasv_ip), &pasv_port) < 0) {
-        fprintf(stderr, "Erro ao entrar em modo PASSIVE\n");
+        fprintf(stderr, "Error entering PASSIVE mode\n");
         ftp_quit(ctrl_sock);
         close(ctrl_sock);
         return 1;
     }
 
-    // Preparar sockaddr_in para a ligação de dados
+    // Prepare sockaddr_in for data connection
     memset(&addr_data, 0, sizeof(addr_data));
     addr_data.sin_family = AF_INET;
     addr_data.sin_port = htons(pasv_port);
 
     if (inet_aton(pasv_ip, &addr_data.sin_addr) == 0) {
-        fprintf(stderr, "IP inválido devolvido pelo PASV: %s\n", pasv_ip);
+        fprintf(stderr, "Invalid IP returned by PASV: %s\n", pasv_ip);
         ftp_quit(ctrl_sock);
         close(ctrl_sock);
         return 1;
     }
 
-    // 6. Abrir ligação TCP de dados
+    // 6. Open TCP data connection
     data_sock = tcp_connect(&addr_data);
     if (data_sock < 0) {
-        fprintf(stderr, "Erro a conectar à ligação de dados FTP\n");
+        fprintf(stderr, "Error connecting to FTP data connection\n");
         ftp_quit(ctrl_sock);
         close(ctrl_sock);
         return 1;
     }
 
-    // 7. Fazer o download do ficheiro
+    // 7. Download file
     if (ftp_retrieve(ctrl_sock, data_sock, u.path, u.filename) < 0) {
-        fprintf(stderr, "Erro ao fazer download do ficheiro\n");
+        fprintf(stderr, "Error downloading file\n");
         ftp_quit(ctrl_sock);
         close(ctrl_sock);
         return 1;
     }
 
-    printf("Download concluído com sucesso: %s\n", u.filename);
+    printf("Download completed successfully: %s\n", u.filename);
 
-    // 8. Terminar sessão FTP
+    // 8. Close FTP session
     if (ftp_quit(ctrl_sock) < 0) {
-        fprintf(stderr, "Aviso: erro ao enviar QUIT\n");
+        fprintf(stderr, "Warning: error sending QUIT\n");
     }
 
     close(ctrl_sock);

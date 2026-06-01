@@ -8,7 +8,7 @@ int parse_url(const char *url, ftp_url_t *out) {
     const char prefix[] = "ftp://";
 
     if (strncmp(p, prefix, strlen(prefix)) != 0) {
-        fprintf(stderr, "URL inválido: tem de começar por ftp://\n");
+        fprintf(stderr, "Invalid URL: must start with ftp://\n");
         return -1;
     }
     p += strlen(prefix);
@@ -28,7 +28,7 @@ int parse_url(const char *url, ftp_url_t *out) {
             size_t pass_len = at - cred_sep - 1;
 
             if (user_len >= sizeof(out->user) || pass_len >= sizeof(out->password)) {
-                fprintf(stderr, "User ou password demasiado longos\n");
+                fprintf(stderr, "User or password too long\n");
                 return -1;
             }
 
@@ -41,7 +41,7 @@ int parse_url(const char *url, ftp_url_t *out) {
             size_t user_len = at - p;
 
             if (user_len >= sizeof(out->user)) {
-                fprintf(stderr, "User demasiado longo\n");
+                fprintf(stderr, "User too long\n");
                 return -1;
             }
 
@@ -54,13 +54,13 @@ int parse_url(const char *url, ftp_url_t *out) {
 
     first_slash = strchr(p, '/');
     if (first_slash == NULL) {
-        fprintf(stderr, "URL inválido: falta path (ex: /ficheiro)\n");
+        fprintf(stderr, "Invalid URL: missing path (ex: /file)\n");
         return -1;
     }
 
     size_t host_len = first_slash - p;
     if (host_len == 0 || host_len >= sizeof(out->host)) {
-        fprintf(stderr, "Host inválido ou demasiado longo\n");
+        fprintf(stderr, "Invalid or too long host\n");
         return -1;
     }
 
@@ -69,12 +69,12 @@ int parse_url(const char *url, ftp_url_t *out) {
 
     const char *path_start = first_slash + 1;
     if (*path_start == '\0') {
-        fprintf(stderr, "Path vazio no URL\n");
+        fprintf(stderr, "Empty path in URL\n");
         return -1;
     }
 
     if (strlen(path_start) >= sizeof(out->path)) {
-        fprintf(stderr, "Path demasiado longo\n");
+        fprintf(stderr, "Path too long\n");
         return -1;
     }
 
@@ -90,12 +90,12 @@ int parse_url(const char *url, ftp_url_t *out) {
     }
 
     if (*fname_start == '\0') {
-        fprintf(stderr, "Filename vazio (path termina em /)\n");
+        fprintf(stderr, "Empty filename (path ends with /)\n");
         return -1;
     }
 
     if (strlen(fname_start) >= sizeof(out->filename)) {
-        fprintf(stderr, "Filename demasiado longo\n");
+        fprintf(stderr, "Filename too long\n");
         return -1;
     }
 

@@ -20,100 +20,100 @@
 #define FTP_CODE_DATA_ALREADY_OPEN   125   
 #define FTP_CODE_TRANSFER_COMPLETE   226  
 
-// ---- Errors gerais ----
+// ---- General errors ----
 #define FTP_CODE_FILE_UNAVAILABLE    550  
 
 /**
- * Lê uma linha da ligação FTP (control connection),
- * terminada em '\n' (o servidor envia "\\r\\n").
+ * Reads a line from the FTP connection (control connection),
+ * terminated in '\n' (server sends "\\r\\n").
  *
- * @param sockfd  descritor do socket TCP (controlo)
- * @param buf     buffer de saída
- * @param max     tamanho máximo do buffer
- * @return número de bytes lidos (>0) ou -1 em erro
+ * @param sockfd  TCP socket descriptor (control)
+ * @param buf     output buffer
+ * @param max     maximum buffer size
+ * @return number of bytes read (>0) or -1 on error
  */
 int ftp_read_line(int sockfd, char *buf, size_t max);
 
 /**
- * Envia um comando FTP (sem CRLF) e lê uma linha de resposta.
- * Exemplo: cmd = "USER anonymous"
+ * Sends an FTP command (without CRLF) and reads a line of response.
+ * Example: cmd = "USER anonymous"
  *
- * @param sockfd    socket de controlo
- * @param cmd       string do comando (sem "\\r\\n")
- * @param response  buffer para a resposta do servidor
- * @param max       tamanho máximo do buffer de resposta
- * @return 0 em sucesso, -1 em erro
+ * @param sockfd    control socket
+ * @param cmd       command string (without "\\r\\n")
+ * @param response  buffer for server response
+ * @param max       maximum buffer response size
+ * @return 0 on success, -1 on error
  */
 int ftp_send_cmd(int sockfd, const char *cmd, char *response, size_t max);
 
 /**
- * Extrai o código numérico (3 dígitos) do início de uma resposta FTP.
- * Exemplo: "220 Service ready" -> 220
+ * Extracts the numeric code (3 digits) from the beginning of an FTP response.
+ * Example: "220 Service ready" -> 220
  *
- * @param response  string com a resposta completa
- * @return código (>=100) em sucesso, -1 em erro (sem 3 dígitos no início)
+ * @param response  string with complete response
+ * @return code (>=100) on success, -1 on error (no 3 digits at start)
  */
 int ftp_get_reply_code(const char *response);
 
 /**
- * Faz LOGIN no servidor FTP usando USER / PASS.
+ * Performs LOGIN to FTP server using USER / PASS.
  *
- * Fluxo típico:
- *  - ler a primeira linha do servidor (220 ...)
- *  - enviar USER <user>
- *  - se código 331, enviar PASS <pass>
- *  - verificar código 230 (login OK)
+ * Typical flow:
+ *  - read first line from server (220 ...)
+ *  - send USER <user>
+ *  - if code 331, send PASS <pass>
+ *  - verify code 230 (login OK)
  *
- * @param ctrl_sock  socket da ligação de controlo (porta 21)
+ * @param ctrl_sock  control connection socket (port 21)
  * @param user       username (ex: "anonymous")
  * @param password   password (ex: "anonymous@")
- * @return 0 em sucesso, -1 em erro (login falhou)
+ * @return 0 on success, -1 on error (login failed)
  */
 int ftp_login(int ctrl_sock, const char *user, const char *password);
 
 /**
- * Entra em modo PASSIVE (PASV) e obtém IP e porta
- * para a ligação de dados.
+ * Enters PASSIVE mode (PASV) and gets IP and port
+ * for the data connection.
  *
- * Fluxo:
- *  - enviar "PASV"
- *  - ler resposta "227 Entering Passive Mode (h1,h2,h3,h4,p1,p2)"
- *  - construir string IP "h1.h2.h3.h4"
- *  - calcular porto p1*256 + p2
+ * Flow:
+ *  - send "PASV"
+ *  - read response "227 Entering Passive Mode (h1,h2,h3,h4,p1,p2)"
+ *  - build IP string "h1.h2.h3.h4"
+ *  - calculate port p1*256 + p2
  *
- * @param ctrl_sock  socket da ligação de controlo
- * @param ip_str     buffer para guardar IP em formato "a.b.c.d"
- * @param ip_max     tamanho máximo do buffer ip_str
- * @param port       ponteiro para guardar a porta calculada
- * @return 0 em sucesso, -1 em erro
+ * @param ctrl_sock  control connection socket
+ * @param ip_str     buffer to store IP in format "a.b.c.d"
+ * @param ip_max     maximum buffer size ip_str
+ * @param port       pointer to store calculated port
+ * @return 0 on success, -1 on error
  */
 int ftp_enter_passive(int ctrl_sock, char *ip_str, size_t ip_max, int *port);
 
 /**
- * Faz o download de um ficheiro usando uma ligação de dados já aberta.
+ * Downloads a file using an already open data connection.
  *
- * Fluxo típico:
- *  - enviar "RETR <remote_path>" na ligação de controlo
- *  - ler resposta 150 / 125 (transfer starting)
- *  - ler dados do socket de dados e gravar em local_filename
- *  - fechar socket de dados
- *  - ler resposta final 226 (transfer complete)
+ * Typical flow:
+ *  - send "RETR <remote_path>" on control connection
+ *  - read response 150 / 125 (transfer starting)
+ *  - read data from data socket and save in local_filename
+ *  - close data socket
+ *  - read final response 226 (transfer complete)
  *
- * @param ctrl_sock      socket de controlo (porta 21)
- * @param data_sock      socket de dados (ligado ao IP/porta do PASV)
- * @param remote_path    caminho remoto completo (ex: "pub/test/file.txt")
- * @param local_filename nome do ficheiro local (ex: "file.txt")
- * @return 0 em sucesso, -1 em erro
+ * @param ctrl_sock      control socket (port 21)
+ * @param data_sock      data socket (connected to PASV IP/port)
+ * @param remote_path    complete remote path (ex: "pub/test/file.txt")
+ * @param local_filename local file name (ex: "file.txt")
+ * @return 0 on success, -1 on error
  */
 int ftp_retrieve(int ctrl_sock, int data_sock,
                  const char *remote_path, const char *local_filename);
 
 /**
- * Envia o comando QUIT e fecha a sessão FTP (nível de protocolo).
- * Não fecha o socket automaticamente aqui (podes decidir no main).
+ * Sends the QUIT command and closes FTP session (protocol level).
+ * Does not close socket automatically here (you can decide in main).
  *
- * @param ctrl_sock  socket da ligação de controlo
- * @return 0 em sucesso, -1 em erro
+ * @param ctrl_sock  control connection socket
+ * @return 0 on success, -1 on error
  */
 int ftp_quit(int ctrl_sock);
 
